@@ -12,6 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { bookedByLabel } from "@/lib/booked-by";
 import { brl, formatPhone, spShortDate, spTime, STATUS_LABEL } from "@/lib/format";
 
+const AUTHORIZED_STAFF = ["Camila", "Elaine", "Iramar"];
+
+type Status = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
+
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
@@ -26,8 +30,6 @@ export const Route = createFileRoute("/_authenticated/painel")({
   }),
   component: Painel,
 });
-
-type Status = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
 
 function Painel() {
   const qc = useQueryClient();
@@ -65,11 +67,15 @@ function Painel() {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="border-b border-primary/20 bg-primary/5 px-4 py-2 text-center text-xs font-medium tracking-wide text-primary">
+        AMBIENTE DE TESTE · D’ELAS STUDIO DE BELEZA
+      </div>
       <header className="border-b border-border">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Logo />
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center justify-end gap-3 text-sm">
             <span className="hidden text-muted-foreground sm:inline">{me?.name}</span>
+            <span className="hidden text-xs text-muted-foreground md:inline">Equipe: {AUTHORIZED_STAFF.join(" · ")}</span>
             <Button size="sm" variant="outline" onClick={async () => { await supabase.auth.signOut(); nav({ to: "/auth" }); }}>Sair</Button>
           </div>
         </div>
@@ -77,9 +83,13 @@ function Painel() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {me && !me.role && <p className="mb-4 rounded-md border border-border p-3 text-sm">Sua conta ainda não tem acesso de equipe.</p>}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl">Agendamentos</h1>
+          <div>
+            <p className="eyebrow text-primary">Agenda interna</p>
+            <h1 className="text-3xl">Agendamentos</h1>
+          </div>
           <Button onClick={() => setOpen(true)}>Novo agendamento</Button>
         </div>
+        <p className="mt-2 text-sm text-muted-foreground">Cada marcação identifica automaticamente quem da equipe realizou o agendamento.</p>
         <div className="mt-6 space-y-3">
           {isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
           {!isLoading && appts.length === 0 && <p className="text-sm text-muted-foreground">Nenhum agendamento.</p>}
@@ -116,6 +126,7 @@ function Painel() {
           {created ? (
             <div className="space-y-4">
               <p className="text-sm">Agendamento <strong className="text-foreground">{created.code}</strong> criado para <strong className="text-foreground">{created.client_name}</strong> · {spShortDate(created.starts_at)} às {spTime(created.starts_at)}.</p>
+              <p className="text-sm text-muted-foreground">Agendado por: <strong className="text-foreground">{me?.name}</strong></p>
               {waLink ? (
                 <Button asChild>
                   <a href={waLink} target="_blank" rel="noopener noreferrer">Enviar confirmação pelo WhatsApp</a>
